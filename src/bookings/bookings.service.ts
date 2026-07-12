@@ -31,6 +31,20 @@ export class BookingsService {
       throw new BadRequestException('Booking date cannot be in the past');
     }
 
+    // Rule: prevent duplicate bookings (same service, date, time)
+    const existingBooking = await this.bookingsRepository.findOne({
+      where: {
+        serviceId: dto.serviceId,
+        bookingDate: dto.bookingDate,
+        bookingTime: dto.bookingTime,
+      },
+    });
+    if (existingBooking) {
+      throw new BadRequestException(
+        'A booking already exists for this service at the selected date and time',
+      );
+    }
+
     const booking = this.bookingsRepository.create(dto);
     return this.bookingsRepository.save(booking);
   }
